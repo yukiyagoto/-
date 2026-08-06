@@ -165,6 +165,10 @@ input[type=number]{width:100%}
 .qfig img{max-width:100%;height:auto;border-radius:6px;display:block;margin:0 auto}
 .qfig figcaption{font-size:12px;color:var(--tx);margin-top:6px;font-weight:600}
 .qfig figcaption span{display:block;font-weight:400;color:var(--tx2);opacity:.85;font-size:11px;margin-top:1px}
+/* 別冊の図そのものが無い問題で、図の内容を文章で示す枠（解答前に出す） */
+.figdesc{margin-top:10px;background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--pri);
+  border-radius:10px;padding:10px 12px;font-size:14px;line-height:1.75;white-space:pre-wrap}
+.figdesc b{display:block;font-size:12px;font-weight:800;color:var(--pri);margin-bottom:4px;letter-spacing:.03em}
 
 /* ===== 科目選択画面 ===== */
 .hero{text-align:center;padding:18px 6px 12px}
@@ -365,7 +369,7 @@ input[type=number]{width:100%}
    ========================================================================= */
 
 const DATA_V = '20260806';
-const SUBJECTS = [{"c":"kiso","n":"基礎医学大要","q":709,"t":272,"g":35,"kb":8127},{"c":"rikohoshasen","n":"理工学・放射線科学","q":285,"t":136,"g":52,"kb":986},{"c":"kikigaku","n":"診療画像機器学","q":274,"t":130,"g":0,"kb":515},{"c":"jikken","n":"診療画像機器学実験","q":150,"t":0,"g":0,"kb":296},{"c":"xgijutsu","n":"エックス線撮影技術学","q":170,"t":121,"g":0,"kb":463},{"c":"gazokensa","n":"診療画像検査学","q":189,"t":82,"g":79,"kb":4391},{"c":"kakuigaku","n":"核医学診療技術学","q":203,"t":94,"g":6,"kb":955},{"c":"hoshachiryo","n":"放射線治療技術学","q":167,"t":82,"g":18,"kb":1136},{"c":"gazokogaku","n":"画像工学","q":43,"t":48,"g":17,"kb":249},{"c":"gazojoho","n":"医療画像情報学","q":82,"t":81,"g":11,"kb":453},{"c":"hoshaanzen","n":"放射線安全管理学","q":89,"t":77,"g":0,"kb":219},{"c":"iryoanzen","n":"医療安全管理学","q":43,"t":81,"g":0,"kb":138}];
+const SUBJECTS = [{"c":"kiso","n":"基礎医学大要","q":709,"t":272,"g":35,"kb":8127},{"c":"rikohoshasen","n":"理工学・放射線科学","q":285,"t":136,"g":52,"kb":986},{"c":"kikigaku","n":"診療画像機器学","q":274,"t":130,"g":12,"kb":832},{"c":"jikken","n":"診療画像機器学実験","q":150,"t":0,"g":2,"kb":304},{"c":"xgijutsu","n":"エックス線撮影技術学","q":170,"t":121,"g":81,"kb":5576},{"c":"gazokensa","n":"診療画像検査学","q":189,"t":82,"g":79,"kb":4391},{"c":"kakuigaku","n":"核医学診療技術学","q":203,"t":94,"g":6,"kb":955},{"c":"hoshachiryo","n":"放射線治療技術学","q":167,"t":82,"g":18,"kb":1136},{"c":"gazokogaku","n":"画像工学","q":43,"t":48,"g":17,"kb":249},{"c":"gazojoho","n":"医療画像情報学","q":82,"t":81,"g":11,"kb":453},{"c":"hoshaanzen","n":"放射線安全管理学","q":89,"t":77,"g":0,"kb":219},{"c":"iryoanzen","n":"医療安全管理学","q":43,"t":81,"g":0,"kb":138}];
 
 
 const APPNAME = '診療放射線技師国家試験';
@@ -638,8 +642,14 @@ function fmtExpl(s, q){
 }
 
 /* ---------- 図版 ---------- */
+/* 図の実体が無い問題は、図の内容を文章で（設問と同じ位置＝解答前に）出す */
+function figScore(q){ return ((q.sf && q.sf.length) ? 2 : 0) + (q.sd ? 1 : 0); }
+function figDescHTML(q){
+  if(!q.sd) return '';
+  return '<div class="figdesc"><b>図の内容</b>' + esc(q.sd) + '</div>';
+}
 function stemFigHTML(q){
-  if(!q.sf || !q.sf.length) return '';
+  if(!q.sf || !q.sf.length) return figDescHTML(q);
   return '<div class="qfigs">' + q.sf.map(function(k){ var f = FIGS[k];
     return f ? ('<figure class="qfig"><img loading="lazy" alt="' + esc(f.c) + '" src="' + f.u + '"><figcaption>' + esc(f.c) + '<span>出典：' + esc(f.s) + '</span></figcaption></figure>') : ''; }).join('') + '</div>';
 }
@@ -706,11 +716,16 @@ function buildPool(){
   if(fk) pool = pool.filter(q => fkey(q) === fk);
   if(mode === 'wrong') pool = pool.filter(q => isWrong(q));
   if(kw){ const k = kw.toLowerCase();
-    pool = pool.filter(q => (q.stem + q.choices.join('') + q.notes.join('') + q.expl).toLowerCase().includes(k)); }
-  /* 全科目では、2科目に重複収載された同一過去問を1問にまとめる */
+    pool = pool.filter(q => (q.stem + q.choices.join('') + q.notes.join('') + q.expl + (q.sd || '')).toLowerCase().includes(k)); }
+  /* 全科目では、2科目に重複収載された同一過去問を1問にまとめる。
+     残すのは図（無ければ図の説明）を持っている方 — 図なしの方を残すと別冊の図が出なくなる */
   if(ALLMODE && !sc){
-    const seen = {};
-    pool = pool.filter(function(q){ if(seen[q.oid]) return false; seen[q.oid] = 1; return true; });
+    const pick = {};
+    pool.forEach(function(q){
+      const p = pick[q.oid];
+      if(!p || figScore(q) > figScore(p)) pick[q.oid] = q;
+    });
+    pool = pool.filter(q => pick[q.oid] === q);
   }
   if(mode === 'order'){
     pool.sort((a, b) => (FRANK[fkey(a)] - FRANK[fkey(b)]) || (a.year - b.year) || (a.no - b.no));
@@ -933,7 +948,7 @@ function renderBrowse(){
     if(sc && q.sc !== sc) return false;
     if(fk && fkey(q) !== fk) return false;
     if(src && q.src !== src) return false;
-    if(kw && !(q.stem + q.choices.join('') + q.notes.join('') + q.expl).toLowerCase().includes(kw)) return false;
+    if(kw && !(q.stem + q.choices.join('') + q.notes.join('') + q.expl + (q.sd || '')).toLowerCase().includes(kw)) return false;
     return true;
   });
   bRef.g = groupByField(sel);
