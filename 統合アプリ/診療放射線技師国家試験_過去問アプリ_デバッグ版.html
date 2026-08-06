@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>診療放射線技師国家試験 過去問（デバッグ版）</title>
+<style>
+:root{
+  --bg:#eef1f4; --card:#ffffff; --card2:#f7f9fb; --line:#dde3e9;
+  --tx:#1b2733; --tx2:#5b6b7a; --pri:#0e7c86; --pri-d:#0a5b63;
+  --ok:#15a34a; --okbg:#e7f6ec; --ng:#dc2626; --ngbg:#fdecec;
+  --warn:#b45309; --kw:#1746c8; --kw2:#3a7bd5;
+  --sh:0 1px 3px rgba(20,40,60,.08),0 1px 2px rgba(20,40,60,.06);
+  --nav-h:60px;
+}
+@media (prefers-color-scheme:dark){
+  :root{--bg:#0f1620;--card:#182430;--card2:#1e2c3a;--line:#2b3a49;
+  --tx:#e6edf3;--tx2:#9fb0c0;--pri:#2dd4bf;--pri-d:#14b8a6;
+  --ok:#34d399;--okbg:#123024;--ng:#f87171;--ngbg:#331717;--warn:#fbbf24;
+  --kw:#93b8ff;--kw2:#7fa6d8;
+  --sh:0 1px 3px rgba(0,0,0,.4);}
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif;
+  background:var(--bg);color:var(--tx);line-height:1.6;font-size:16px;
+  -webkit-text-size-adjust:100%;}
+#app{max-width:680px;margin:0 auto;min-height:100vh;padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom));position:relative}
+#app.nonav{padding-bottom:20px}
+h1,h2,h3,p{margin:0}
+button{font-family:inherit;font-size:inherit;cursor:pointer;color:inherit}
+.appbar{position:sticky;top:0;z-index:20;background:var(--pri);color:#fff;
+  padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;gap:8px}
+.appbar h1{font-size:17px;font-weight:700;letter-spacing:.02em}
+.appbar .sub{font-size:11px;opacity:.85;margin-left:auto;font-weight:500}
+.appbar .switch{border:1px solid rgba(255,255,255,.5);background:rgba(255,255,255,.12);color:#fff;
+  border-radius:8px;font-size:11px;font-weight:700;padding:5px 9px;line-height:1;flex:none}
+.appbar .switch:active{background:rgba(255,255,255,.28)}
+.view{display:none;padding:14px 14px 20px}
+.view.active{display:block;animation:fade .18s ease}
+@keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+/* bottom nav */
+.nav{position:fixed;left:0;right:0;bottom:0;z-index:30;height:calc(var(--nav-h) + env(safe-area-inset-bottom));
+  padding-bottom:env(safe-area-inset-bottom);
+  background:var(--card);border-top:1px solid var(--line);
+  display:flex;max-width:680px;margin:0 auto}
+.nav button{flex:1;border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:2px;color:var(--tx2);font-size:11px;font-weight:600;padding:6px 0;transition:color .15s}
+.nav button .ic{font-size:20px;line-height:1}
+.nav button.on{color:var(--pri)}
+
+/* cards & controls */
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--sh);padding:16px;margin-bottom:12px}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+label.fld{display:block;font-size:12px;font-weight:700;color:var(--tx2);margin:10px 0 5px}
+select,input[type=text],input[type=number]{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:10px;
+  background:var(--card2);color:var(--tx);font-size:15px;appearance:none}
+input[type=number]{width:100%}
+.seg{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{flex:1;border:0;background:var(--card2);padding:10px 4px;font-size:13px;font-weight:600;color:var(--tx2)}
+.seg button.on{background:var(--pri);color:#fff}
+.btn{display:block;width:100%;border:0;border-radius:12px;background:var(--pri);color:#fff;
+  padding:14px;font-size:16px;font-weight:700;box-shadow:var(--sh)}
+.btn:active{transform:translateY(1px)}
+.btn.sec{background:var(--card2);color:var(--tx);border:1px solid var(--line);box-shadow:none}
+.btn.ghost{background:none;color:var(--pri);box-shadow:none;font-weight:600;padding:10px}
+.btn[disabled]{opacity:.5}
+.mini{font-size:12px;color:var(--tx2)}
+.pill{display:inline-block;background:var(--card2);border:1px solid var(--line);color:var(--tx2);
+  border-radius:999px;padding:2px 10px;font-size:11px;font-weight:700}
+.pill.f{background:color-mix(in srgb,var(--pri) 14%,transparent);color:var(--pri);border-color:transparent}
+.pill.s{background:color-mix(in srgb,var(--kw) 13%,transparent);color:var(--kw);border-color:transparent}
+
+/* stats */
+.stats{display:flex;gap:8px;margin-bottom:12px}
+.stat{flex:1;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 6px;text-align:center;box-shadow:var(--sh)}
+.stat b{display:block;font-size:20px;font-weight:800;color:var(--pri)}
+.stat span{font-size:11px;color:var(--tx2);font-weight:600}
+
+/* quiz */
+.qhead{display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap}
+.prog{flex:1;height:7px;background:var(--card2);border-radius:99px;overflow:hidden;min-width:60px}
+.prog>i{display:block;height:100%;background:var(--pri);border-radius:99px;transition:width .25s}
+.qstem{font-size:17px;font-weight:700;margin:6px 0 14px;line-height:1.5}
+.dupnote{font-size:11.5px;color:var(--tx2);background:var(--card2);border:1px dashed var(--line);
+  border-radius:8px;padding:6px 9px;margin:-8px 0 12px}
+.choice{display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;
+  background:var(--card2);border:1.5px solid var(--line);border-radius:12px;padding:12px 13px;margin-bottom:9px;
+  transition:border-color .12s,background .12s}
+.choice .num{flex:none;width:24px;height:24px;border-radius:50%;background:var(--card);border:1.5px solid var(--line);
+  display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--tx2);margin-top:1px}
+.choice .ctxt{flex:1;font-size:15px}
+.choice.sel{border-color:var(--pri);background:color-mix(in srgb,var(--pri) 10%,transparent)}
+.choice.sel .num{background:var(--pri);color:#fff;border-color:var(--pri)}
+.choice.ok{border-color:var(--ok);background:var(--okbg)}
+.choice.ok .num{background:var(--ok);color:#fff;border-color:var(--ok)}
+.choice.ng{border-color:var(--ng);background:var(--ngbg)}
+.choice.ng .num{background:var(--ng);color:#fff;border-color:var(--ng)}
+.choice .note{display:none;margin-top:6px;font-size:13px;color:var(--tx2);line-height:1.5}
+.choice.reveal .note{display:block}
+.mk{margin-left:auto;font-weight:800;font-size:15px}
+.mk.ok{color:var(--ok)} .mk.ng{color:var(--ng)}
+.verdict{border-radius:12px;padding:10px 14px;font-weight:800;margin:4px 0 12px;text-align:center}
+.verdict.ok{background:var(--okbg);color:var(--ok)}
+.verdict.ng{background:var(--ngbg);color:var(--ng)}
+.expl{margin-top:12px;background:var(--card2);border:1px solid var(--line);border-left:3px solid var(--pri);
+  border-radius:8px;padding:10px 12px;font-size:13.5px;color:var(--tx);line-height:1.65;white-space:pre-wrap}
+.expl b{color:var(--pri);font-size:12px;display:block;margin-bottom:3px}
+/* 解説内キーワード強調 */
+.eh{color:var(--kw);font-weight:800}
+.eh2{color:var(--kw);font-weight:700}
+.kw{color:var(--kw);font-weight:700}
+.kx{color:var(--kw2);font-weight:600}
+.ec{font-weight:600}
+.note .kw,.note .kx,.nt .kw,.nt .kx{font-weight:700}
+.qnav{display:flex;gap:8px;margin-top:6px}
+.qnav .btn{flex:1}
+
+/* browse / reference list */
+.acc{background:var(--card);border:1px solid var(--line);border-radius:12px;margin-bottom:10px;overflow:hidden;box-shadow:var(--sh)}
+.acc>summary{list-style:none;padding:13px 15px;font-weight:700;display:flex;align-items:center;gap:8px;cursor:pointer}
+.acc>summary::-webkit-details-marker{display:none}
+.acc>summary .cnt{margin-left:auto;font-size:12px;color:var(--tx2);font-weight:700}
+.acc>summary .chev{transition:transform .2s;color:var(--tx2)}
+.acc>summary .sj{font-size:11px;color:var(--tx2);font-weight:700}
+.acc[open]>summary .chev{transform:rotate(90deg)}
+.acc .body{padding:0 15px 8px}
+.bq{border-top:1px solid var(--line);padding:12px 0}
+.bq .qs{font-weight:700;margin-bottom:8px}
+.bq .opt{display:flex;gap:8px;padding:4px 0;font-size:14px}
+.bq .opt .n{flex:none;font-weight:700;color:var(--tx2)}
+.bq .opt.correct .n{color:var(--ok)}
+.bq .opt.correct{color:var(--tx)}
+.bq .opt .nt{color:var(--tx2);font-size:12.5px;display:block;margin-top:2px}
+.ansline{margin-top:6px;font-size:13px;font-weight:800;color:var(--ok)}
+
+/* glossary */
+.gterm{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:10px;box-shadow:var(--sh)}
+.gterm h3{font-size:16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.gterm .rd{font-size:12px;color:var(--tx2);font-weight:600}
+.gterm p{margin-top:6px;font-size:14px;color:var(--tx)}
+/* 単語帳を分野ごとに折り畳んだときの中身 */
+.acc .gterm{background:none;border:0;border-top:1px solid var(--line);border-radius:0;
+  box-shadow:none;padding:12px 0;margin:0}
+.acc .gterm h3{font-size:15px}
+.acc .gterm .pill.f{display:none}
+/* flashcard */
+.fc-wrap{perspective:1200px;margin:10px 0}
+.fc{position:relative;min-height:220px;transition:transform .5s;transform-style:preserve-3d}
+.fc.flip{transform:rotateY(180deg)}
+.fc-face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  background:var(--card);border:1px solid var(--line);border-radius:16px;box-shadow:var(--sh);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:22px}
+.fc-face.back{transform:rotateY(180deg)}
+.fc-face .big{font-size:22px;font-weight:800}
+.fc-face .rd{font-size:13px;color:var(--tx2);margin-top:6px}
+.fc-face .df{font-size:15px;line-height:1.7}
+.fc-face .hint{position:absolute;bottom:12px;font-size:11px;color:var(--tx2)}
+.emptyhint{text-align:center;color:var(--tx2);padding:40px 20px;font-size:14px}
+.sectitle{font-size:13px;font-weight:800;color:var(--tx2);margin:16px 2px 8px;letter-spacing:.03em}
+.qfigs{margin-top:10px;display:flex;flex-direction:column;gap:10px}
+.qfig{margin:0;background:var(--card2);border:1px solid var(--line);border-radius:10px;padding:8px;text-align:center}
+.qfig img{max-width:100%;height:auto;border-radius:6px;display:block;margin:0 auto}
+.qfig figcaption{font-size:12px;color:var(--tx);margin-top:6px;font-weight:600}
+.qfig figcaption span{display:block;font-weight:400;color:var(--tx2);opacity:.85;font-size:11px;margin-top:1px}
+
+/* ===== 科目選択画面 ===== */
+.hero{text-align:center;padding:18px 6px 12px}
+.hero h2{font-size:20px;font-weight:800;letter-spacing:.02em}
+.hero p{margin-top:6px}
+.allbtn{display:block;width:100%;border:0;border-radius:14px;background:var(--pri);color:#fff;
+  padding:15px 16px;text-align:left;box-shadow:var(--sh)}
+.allbtn .t{display:block;font-size:17px;font-weight:800}
+.allbtn .s{display:block;font-size:11.5px;opacity:.9;margin-top:3px;font-weight:500}
+.allbtn:active{transform:translateY(1px)}
+.scard{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  background:var(--card);border:1px solid var(--line);border-radius:12px;
+  padding:12px 14px;margin-bottom:8px;box-shadow:var(--sh)}
+.scard:active{border-color:var(--pri)}
+.scard .l{flex:1;min-width:0}
+.scard .nm{display:block;font-size:15.5px;font-weight:700}
+.scard .meta{display:block;font-size:11.5px;color:var(--tx2);margin-top:2px}
+.scard .r{flex:none;text-align:right}
+.scard .rate{display:block;font-size:15px;font-weight:800;color:var(--pri)}
+.scard .rate.none{color:var(--tx2);font-weight:600;font-size:12px}
+.scard .rv{display:block;font-size:10.5px;color:var(--tx2);margin-top:1px}
+.loadbox{margin-top:14px}
+.loadbar{height:8px;background:var(--card2);border:1px solid var(--line);border-radius:99px;overflow:hidden;margin-top:10px}
+.loadbar>i{display:block;height:100%;width:0;background:var(--pri);border-radius:99px;transition:width .2s}
+.errbox{background:var(--ngbg);border:1px solid var(--ng);color:var(--ng);border-radius:12px;
+  padding:12px 14px;font-size:13px;line-height:1.7;margin-top:12px;word-break:break-all}
+.errbox b{display:block;margin-bottom:4px}
+/* デバッグ版の問題ID一覧 */
+.rowl{display:flex;gap:8px;border-top:1px solid var(--line);padding:6px 0;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
+.rowl .i{flex:none;width:112px;color:var(--kw);font-weight:700}
+.rowl .s{flex:1;color:var(--tx2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="app" class="nonav">
+<div class="appbar">
+  <button class="switch" id="btn-switch" style="display:none">科目</button>
+  <h1 id="appTitle">診療放射線技師国家試験 <span style="font-weight:400;opacity:.85">過去問</span></h1>
+  <span class="sub" id="qcount"></span>
+</div>
+
+  <!-- SUBJECT PICKER -->
+  <section id="view-subject" class="view active">
+    <div class="hero">
+      <h2>科目を選んでください</h2>
+      <p class="mini">選んだ科目のデータだけを読み込みます。成績と復習リストは科目ごとに保存されます。</p>
+    </div>
+    <button class="allbtn" id="pick-all">
+      <span class="t">全科目でまとめて学習</span>
+      <span class="s" id="all-sub"></span>
+    </button>
+    <div class="sectitle">科目別に学習</div>
+    <div id="subj-list"></div>
+    <div class="loadbox" id="loadbox" style="display:none">
+      <div class="card">
+        <div style="font-weight:700" id="load-title">読み込み中…</div>
+        <div class="mini" id="load-detail" style="margin-top:2px"></div>
+        <div class="loadbar"><i id="load-bar"></i></div>
+      </div>
+    </div>
+    <div id="errbox"></div>
+    <p class="mini" style="margin-top:18px;text-align:center" id="foot-note"></p>
+  </section>
+
+  <!-- TEST -->
+  <section id="view-test" class="view">
+    <div id="test-setup">
+      <div class="stats">
+        <div class="stat"><b id="st-rate">0%</b><span>累計正答率</span></div>
+        <div class="stat"><b id="st-done">0</b><span>解いた問題</span></div>
+        <div class="stat"><b id="st-wrong">0</b><span>復習リスト</span></div>
+      </div>
+      <div class="card">
+        <div id="f-subjwrap" style="display:none">
+          <label class="fld">科目</label>
+          <select id="f-subj"></select>
+        </div>
+        <div class="row" style="gap:8px">
+          <div style="flex:1;min-width:0"><label class="fld">出題範囲</label><select id="f-source"></select></div>
+          <div style="flex:1;min-width:0"><label class="fld">年度（過去問）</label><select id="f-year"></select></div>
+        </div>
+        <label class="fld">分野</label>
+        <select id="f-field"></select>
+        <label class="fld">出題モード</label>
+        <div class="seg" id="f-mode">
+          <button data-m="random" class="on">ランダム</button>
+          <button data-m="order">順番</button>
+          <button data-m="wrong">復習(間違い)</button>
+        </div>
+        <div id="f-startwrap" style="display:none">
+          <label class="fld">開始問題番号（絞り込み後の順番でN問目から）</label>
+          <input type="number" id="f-startno" min="1" value="1" placeholder="例：36">
+        </div>
+        <label class="fld">キーワード検索（任意）</label>
+        <input type="text" id="f-kw" placeholder="例：横隔膜／ホルモン／MHC">
+        <label class="fld">問題数</label>
+        <select id="f-count">
+          <option value="10">10問</option>
+          <option value="20" selected>20問</option>
+          <option value="30">30問</option>
+          <option value="50">50問</option>
+          <option value="0">全問</option>
+        </select>
+        <div style="margin-top:16px" class="row">
+          <button class="btn" id="f-start">テスト開始</button>
+        </div>
+        <button class="btn ghost" id="f-reset" style="margin-top:6px">累計成績・復習リストをリセット</button>
+      </div>
+    </div>
+
+    <div id="test-run" style="display:none">
+      <div class="qhead">
+        <span class="pill s" id="q-subj" style="display:none"></span>
+        <span class="pill f" id="q-field"></span>
+        <span class="pill" id="q-src"></span>
+        <div class="prog"><i id="q-prog"></i></div>
+        <span class="mini" id="q-idx"></span>
+      </div>
+      <div class="card">
+        <div class="qstem" id="q-stem"></div>
+        <div id="q-dup"></div>
+        <div class="qfigs-stem" id="q-stemfig"></div>
+        <div id="q-verdict"></div>
+        <div id="q-choices"></div>
+        <div id="q-expl"></div>
+      </div>
+      <div class="qnav">
+        <button class="btn sec" id="q-back" style="flex:.5">← 戻る</button>
+        <button class="btn sec" id="q-quit" style="flex:.5">中断</button>
+        <button class="btn" id="q-action">採点</button>
+      </div>
+    </div>
+
+    <div id="test-result" style="display:none">
+      <div class="card" style="text-align:center">
+        <div style="font-size:44px" id="r-emoji">🎉</div>
+        <h2 id="r-score" style="margin:6px 0;font-size:26px"></h2>
+        <p class="mini" id="r-detail"></p>
+        <div class="row" style="margin-top:16px">
+          <button class="btn" id="r-again">もう一度</button>
+          <button class="btn sec" id="r-wrong">間違いだけ復習</button>
+          <button class="btn ghost" id="r-home">設定に戻る</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BROWSE -->
+  <section id="view-browse" class="view">
+    <div class="card" style="padding:12px">
+      <div id="b-subjwrap" style="display:none;margin-bottom:8px"><select id="b-subj"></select></div>
+      <div class="row">
+        <select id="b-source" style="flex:1"></select>
+        <select id="b-field" style="flex:1"></select>
+      </div>
+      <input type="text" id="b-kw" placeholder="キーワードで絞り込み" style="margin-top:8px">
+    </div>
+    <div id="b-list"></div>
+  </section>
+
+  <!-- REFERENCE -->
+  <!--REF-VIEW-START-->
+  <section id="view-ref" class="view">
+    <p class="mini" style="margin:2px 4px 10px">【デバッグ版】収載されている全問題のID一覧（科目ごと）。正規版ではここが「参考書」ビューになる。</p>
+    <div id="r-list"></div>
+  </section>
+  <!--REF-VIEW-END-->
+
+  <!-- GLOSSARY -->
+  <section id="view-glossary" class="view">
+    <div class="card" style="padding:12px">
+      <div class="seg" id="g-mode">
+        <button data-g="list" class="on">一覧</button>
+        <button data-g="card">暗記カード</button>
+      </div>
+      <input type="text" id="g-kw" placeholder="用語を検索" style="margin-top:8px">
+      <div id="g-subjwrap" style="display:none;margin-top:8px"><select id="g-subj"></select></div>
+      <select id="g-field" style="margin-top:8px"></select>
+    </div>
+    <div id="g-list"></div>
+    <div id="g-card" style="display:none"></div>
+  </section>
+
+  <nav class="nav" id="nav" style="display:none">
+    <button data-v="test" class="on"><span class="ic">📝</span>テスト</button>
+    <button data-v="browse"><span class="ic">📖</span>閲覧</button>
+    <!--NAV-REF-START--><button data-v="ref"><span class="ic">🔢</span>番号</button><!--NAV-REF-END-->
+    <button data-v="glossary"><span class="ic">🔤</span>単語帳</button>
+  </nav>
+</div>
+
+<script>
+/* =========================================================================
+   診療放射線技師国家試験 統合過去問アプリ
+   - 科目データは data/<code>.js に分離し、選んだ科目のぶんだけ読み込む
+   - 相対パス + 通常のscriptタグで読むため file:// でも raw.githack 経由でも動く
+   ========================================================================= */
+
+const DATA_V = '20260806';
+const SUBJECTS = [{"c":"kiso","n":"基礎医学大要","q":709,"t":272,"g":35,"kb":8127},{"c":"rikohoshasen","n":"理工学・放射線科学","q":285,"t":136,"g":52,"kb":986},{"c":"kikigaku","n":"診療画像機器学","q":274,"t":130,"g":0,"kb":515},{"c":"jikken","n":"診療画像機器学実験","q":150,"t":0,"g":0,"kb":296},{"c":"xgijutsu","n":"エックス線撮影技術学","q":170,"t":121,"g":0,"kb":463},{"c":"gazokensa","n":"診療画像検査学","q":189,"t":82,"g":79,"kb":4391},{"c":"kakuigaku","n":"核医学診療技術学","q":203,"t":94,"g":6,"kb":955},{"c":"hoshachiryo","n":"放射線治療技術学","q":167,"t":82,"g":18,"kb":1136},{"c":"gazokogaku","n":"画像工学","q":43,"t":48,"g":17,"kb":249},{"c":"gazojoho","n":"医療画像情報学","q":82,"t":81,"g":11,"kb":453},{"c":"hoshaanzen","n":"放射線安全管理学","q":89,"t":77,"g":0,"kb":219},{"c":"iryoanzen","n":"医療安全管理学","q":43,"t":81,"g":0,"kb":138}];
+
+
+const APPNAME = '診療放射線技師国家試験';
+window.SUBJ_DATA = window.SUBJ_DATA || {};
+const SUBJ_BY = {}; SUBJECTS.forEach(function(s){ SUBJ_BY[s.c] = s; });
+
+/* 選択中の科目（コード配列）と、そこから作る作業用データ */
+let SEL = [];
+let ALLMODE = false;
+let QUESTIONS = [], TERMS = [], FIGS = {};
+let FIELDS = [];          /* {c,f} の配列（科目順・分野の出現順） */
+let FRANK = {};           /* 'code::分野' -> FIELDS内の並び順 */
+let YEARS = [];
+let KW_BY = {};           /* code -> 用語配列（キーワード強調用） */
+let DUPMAP = {};          /* 元ID -> [科目名,…] 別科目にも収載されている問題 */
+
+const CIRCLE = ['','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
+const FKSEP = '::';
+function fkey(o){ return o.sc + FKSEP + o.field; }
+function srcTag(q){ return q.src === '過去問' ? ('第' + q.year + '回' + q.sess) : '問題集'; }
+function subjName(c){ return (SUBJ_BY[c] && SUBJ_BY[c].n) || c; }
+function fmtNum(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+function fmtMB(kb){ return kb >= 1024 ? (kb / 1024).toFixed(1) + 'MB' : kb + 'KB'; }
+
+/* ---------- storage（科目ごとに保存） ---------- */
+const LS = {
+  get(k, d){ try{ return JSON.parse(localStorage.getItem('kokushi_' + k)) ?? d; }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('kokushi_' + k, JSON.stringify(v)); }catch(e){} }
+};
+let wrongBy = {}, statBy = {};
+function loadProgress(c){
+  if(!(c in wrongBy)){
+    wrongBy[c] = new Set(LS.get(c + '_wrong', []));
+    statBy[c]  = LS.get(c + '_stat', {done:0, correct:0});
+  }
+}
+function saveProgress(c){
+  LS.set(c + '_wrong', [...wrongBy[c]]);
+  LS.set(c + '_stat', statBy[c]);
+}
+function progressOf(c){   /* 科目選択画面用：データ未読込でも読める */
+  const st = LS.get(c + '_stat', {done:0, correct:0});
+  const wr = LS.get(c + '_wrong', []);
+  return {done: st.done|0, correct: st.correct|0, wrong: wr.length};
+}
+function isWrong(q){ return !!(wrongBy[q.sc] && wrongBy[q.sc].has(q.oid)); }
+
+/* ---------- 科目選択画面 ---------- */
+const elApp = document.getElementById('app');
+const elNav = document.getElementById('nav');
+const elSwitch = document.getElementById('btn-switch');
+
+function renderPicker(){
+  const totQ = SUBJECTS.reduce((a, s) => a + s.q, 0);
+  const totT = SUBJECTS.reduce((a, s) => a + s.t, 0);
+  const totK = SUBJECTS.reduce((a, s) => a + s.kb, 0);
+  document.getElementById('all-sub').textContent =
+    SUBJECTS.length + '科目 ・ ' + fmtNum(totQ) + '問 ・ 用語' + fmtNum(totT) + '語（読み込み 約' + fmtMB(totK) + '）';
+  document.getElementById('subj-list').innerHTML = SUBJECTS.map(function(s){
+    const p = progressOf(s.c);
+    const rate = p.done ? Math.round(p.correct / p.done * 100) + '%' : '未学習';
+    return '<button class="scard" data-c="' + s.c + '">' +
+      '<span class="l"><span class="nm">' + esc(s.n) + '</span>' +
+      '<span class="meta">' + fmtNum(s.q) + '問 ・ 用語' + s.t + '語' + (s.g ? ' ・ 図' + s.g + '点' : '') +
+      ' ・ ' + fmtMB(s.kb) + '</span></span>' +
+      '<span class="r"><span class="rate' + (p.done ? '' : ' none') + '">' + rate + '</span>' +
+      '<span class="rv">' + (p.done ? '解答' + p.done + ' ／ 復習' + p.wrong : '&nbsp;') + '</span></span></button>';
+  }).join('');
+  document.getElementById('qcount').textContent = fmtNum(totQ) + '問';
+  document.getElementById('foot-note').textContent = 'データ更新：' + DATA_V;
+}
+document.getElementById('subj-list').addEventListener('click', function(e){
+  const b = e.target.closest('.scard'); if(!b) return;
+  activate([b.dataset.c]);
+});
+document.getElementById('pick-all').onclick = function(){ activate(SUBJECTS.map(s => s.c)); };
+elSwitch.onclick = function(){ showPicker(); };
+
+function showPicker(){
+  document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === 'view-subject'));
+  elNav.style.display = 'none';
+  elSwitch.style.display = 'none';
+  elApp.classList.add('nonav');
+  document.getElementById('appTitle').innerHTML = APPNAME + ' <span style="font-weight:400;opacity:.85">過去問</span>';
+  document.getElementById('errbox').innerHTML = '';
+  renderPicker();
+  window.scrollTo(0, 0);
+}
+
+/* ---------- データ読み込み ---------- */
+function dataURL(c){ return 'data/' + c + '.js?v=' + DATA_V; }
+function loadSubject(c){
+  return new Promise(function(res, rej){
+    if(window.SUBJ_DATA[c]) return res();
+    const s = document.createElement('script');
+    s.src = dataURL(c);
+    s.onload = function(){
+      if(!window.SUBJ_DATA[c]) rej(new Error(dataURL(c) + ' は読み込めましたが、中身が空でした。'));
+      else res();
+    };
+    s.onerror = function(){ rej(new Error(dataURL(c) + ' を読み込めませんでした。')); };
+    document.head.appendChild(s);
+  });
+}
+function showError(err){
+  document.getElementById('loadbox').style.display = 'none';
+  document.getElementById('errbox').innerHTML =
+    '<div class="errbox"><b>データを読み込めませんでした</b>' + esc(err.message) +
+    '<br><br>この HTML と同じ場所に <b>data</b> フォルダ（科目別データ）が必要です。' +
+    'GitHub で公開する場合は data フォルダごとアップロードし、' +
+    'raw.githack.com のリンクは <b>このHTMLファイル</b>のものを使ってください。</div>';
+}
+async function activate(codes){
+  const box = document.getElementById('loadbox'), bar = document.getElementById('load-bar');
+  document.getElementById('errbox').innerHTML = '';
+  const need = codes.filter(c => !window.SUBJ_DATA[c]);
+  if(need.length){
+    box.style.display = '';
+    document.getElementById('load-title').textContent = 'データを読み込んでいます…';
+    for(let i = 0; i < need.length; i++){
+      const s = SUBJ_BY[need[i]];
+      document.getElementById('load-detail').textContent =
+        s.n + '（' + fmtMB(s.kb) + '）　' + (i + 1) + ' / ' + need.length;
+      bar.style.width = (i / need.length * 100) + '%';
+      await new Promise(r => setTimeout(r, 16));   /* 画面を描かせてから読む */
+      try{ await loadSubject(need[i]); }
+      catch(err){ showError(err); return; }
+    }
+    bar.style.width = '100%';
+  }
+  box.style.display = 'none';
+  buildWorkingSet(codes);
+  enterApp();
+}
+
+function buildWorkingSet(codes){
+  SEL = codes.slice();
+  ALLMODE = SEL.length > 1;
+  QUESTIONS = []; TERMS = []; FIGS = {}; FIELDS = []; KW_BY = {}; DUPMAP = {};
+  const seenF = {};
+  SEL.forEach(function(c){
+    const d = window.SUBJ_DATA[c];
+    loadProgress(c);
+    d.q.forEach(function(q){
+      QUESTIONS.push(q);
+      const k = fkey(q);
+      if(!seenF[k]){ seenF[k] = 1; FIELDS.push({c: q.sc, f: q.field}); }
+      (DUPMAP[q.oid] = DUPMAP[q.oid] || []).push(q.sc);
+    });
+    d.t.forEach(function(t){ TERMS.push(t); });
+    Object.keys(d.f).forEach(function(k){ FIGS[k] = d.f[k]; });
+    KW_BY[c] = d.t.map(t => t.term).filter(t => t.length >= 3);
+  });
+  Object.keys(DUPMAP).forEach(function(k){ if(DUPMAP[k].length < 2) delete DUPMAP[k]; });
+  YEARS = [...new Set(QUESTIONS.filter(q => q.year).map(q => q.year))].sort((a, b) => a - b);
+  FRANK = {}; FIELDS.forEach(function(x, i){ FRANK[x.c + FKSEP + x.f] = i; });
+  kwReCache = {}; kwReN = 0;
+}
+
+function enterApp(){
+  elNav.style.display = '';
+  elSwitch.style.display = '';
+  elApp.classList.remove('nonav');
+  const title = ALLMODE ? '全科目' : subjName(SEL[0]);
+  document.getElementById('appTitle').innerHTML =
+    esc(title) + ' <span style="font-weight:400;opacity:.85">過去問</span>';
+  document.getElementById('qcount').textContent = fmtNum(QUESTIONS.length) + '問';
+  setupFilters();
+  refreshStats();
+  show('setup');
+  [...elNav.children].forEach((x, i) => x.classList.toggle('on', i === 0));
+  document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === 'view-test'));
+  window.scrollTo(0, 0);
+}
+
+/* ---------- nav ---------- */
+elNav.addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  [...elNav.children].forEach(x => x.classList.toggle('on', x === b));
+  const v = b.dataset.v;
+  document.querySelectorAll('.view').forEach(s => s.classList.toggle('active', s.id === 'view-' + v));
+  window.scrollTo(0, 0);
+  if(v === 'browse') renderBrowse();
+  if(v === 'ref') renderRef();
+  if(v === 'glossary') renderGlossary();
+});
+
+/* ---------- helpers ---------- */
+function esc(s){ return (s || '').replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+function shuffle(a){ for(let i = a.length - 1; i > 0; i--){ const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
+/* 分野セレクト：全科目のときは科目ごとの optgroup にまとめる */
+function fieldOptions(sel, limitCode){
+  const fs = FIELDS.filter(x => !limitCode || x.c === limitCode);
+  let h = '<option value="">全分野</option>';
+  if(ALLMODE && !limitCode){
+    SEL.forEach(function(c){
+      const g = fs.filter(x => x.c === c);
+      if(!g.length) return;
+      h += '<optgroup label="' + esc(subjName(c)) + '">' +
+        g.map(x => '<option value="' + esc(x.c + FKSEP + x.f) + '">' + esc(x.f) + '</option>').join('') +
+        '</optgroup>';
+    });
+  }else{
+    h += fs.map(x => '<option value="' + esc(x.c + FKSEP + x.f) + '">' + esc(x.f) + '</option>').join('');
+  }
+  const cur = sel.value;
+  sel.innerHTML = h;
+  if(cur) sel.value = cur;
+}
+function subjOptions(sel){
+  sel.innerHTML = '<option value="">全科目（' + fmtNum(QUESTIONS.length) + '問）</option>' +
+    SEL.map(c => '<option value="' + c + '">' + esc(subjName(c)) + '（' +
+      window.SUBJ_DATA[c].q.length + '問）</option>').join('');
+}
+
+/* ---- 解説のキーワード強調（青文字） ---- */
+const KW_STOP = new Set(['発症','症状','病変','疾患','病態','炎症','変化','治療','検査','状態','部位','原因','ウイルス','ホルモン','リスク','タイプ','バランス','レベル','コントロール','メカニズム']);
+const RE_EMPH = /最も[^\s、。]{1,5}|最多|最大|最小|第[0-9０-９]+位|頻出|禁忌|特徴的|好発|鑑別|不可逆/g;
+const RE_NUM = /[0-9０-９]+(?:[.．][0-9０-９]+)?(?:〜[0-9０-９]+)?(?:歳|%|％|mL|dL|mg|kg|mmHg|℃|時間|日間|週|か月|ヵ月|年|回|倍|型|度)/g;
+const RE_DIS = /[一-龥ァ-ヶーA-Za-z0-9]{1,9}(?:症候群|症|癌|がん|腫瘍|腫|炎|病|不全|梗塞|硬化|狭窄|閉塞|麻痺|骨折|障害)(?![一-龥])/g;
+const RE_KATA = /[ァ-ヶ][ァ-ヶー]{3,}/g;
+const RE_LAT = /[A-Z][A-Za-z0-9-]{1,14}/g;
+const RE_LEAD = /(^|\n)([・◦])([^\n…:：]{1,24})(?=[…:：])/g;
+const RE_ARROW = /(^|\n)(→[^\n]*)/g;
+function reEsc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+let kwReCache = {}, kwReN = 0;
+function kwRe(q){
+  const key = (q && q.id) || '';
+  if(key in kwReCache) return kwReCache[key];
+  if(kwReN > 400){ kwReCache = {}; kwReN = 0; }   /* 全科目でも肥大しないように */
+  const set = new Set(KW_BY[q && q.sc] || []);
+  ((q && q.choices) || []).forEach(c => {
+    String(c).split(/[─・／\/、,（(]/).forEach(p => {
+      p = p.replace(/^[\s）)。]+/, '').replace(/[\s）)。]+$/, '');
+      if(p.length >= 3 && p.length <= 14 && !/[るたいずくばてでにはがをのもやとへ]$/.test(p) && !KW_STOP.has(p)) set.add(p);
+    });
+  });
+  const arr = [...set].sort((a, b) => b.length - a.length).map(reEsc);
+  kwReN++;
+  return kwReCache[key] = arr.length ? new RegExp(arr.join('|'), 'g') : null;
+}
+/* 解説文をHTMLエスケープしつつ、見出し・キーワードを青文字にして返す */
+function fmtExpl(s, q){
+  if(!s) return '';
+  const H = [], cnt = {};
+  const hold = cls => v => {
+    if(KW_STOP.has(v)) return v;
+    const n = cnt[v] || 0; if(n >= 2) return v;   /* 同じ語は1解説につき2回まで */
+    cnt[v] = n + 1; H.push({c: cls, t: v});
+    return '' + (H.length - 1) + '';
+  };
+  const hH = hold('eh'), hH2 = hold('eh2'), hA = hold('kw'), hB = hold('kx');
+  let t = esc(s);
+  t = t.replace(/【[^】\n]{1,40}】/g, m => hH(m));
+  t = t.replace(/〈[^〉\n]{1,40}〉/g, m => hH2(m));
+  t = t.replace(RE_LEAD, (m, a, b, c) => a + b + hA(c));
+  const re = kwRe(q);
+  if(re) t = t.replace(re, m => hA(m));
+  t = t.replace(RE_EMPH, m => hA(m));
+  t = t.replace(RE_NUM, m => hB(m));
+  t = t.replace(RE_DIS, m => hB(m));
+  t = t.replace(RE_KATA, m => hB(m));
+  t = t.replace(RE_LAT, m => hB(m));
+  t = t.replace(RE_ARROW, (m, a, b) => a + '<span class="ec">' + b + '</span>');
+  for(let i = 0; i < 4 && t.indexOf('') >= 0; i++){
+    t = t.replace(/(\d+)/g, (m, n) => '<span class="' + H[+n].c + '">' + H[+n].t + '</span>');
+  }
+  return t;
+}
+
+/* ---------- 図版 ---------- */
+function stemFigHTML(q){
+  if(!q.sf || !q.sf.length) return '';
+  return '<div class="qfigs">' + q.sf.map(function(k){ var f = FIGS[k];
+    return f ? ('<figure class="qfig"><img loading="lazy" alt="' + esc(f.c) + '" src="' + f.u + '"><figcaption>' + esc(f.c) + '<span>出典：' + esc(f.s) + '</span></figcaption></figure>') : ''; }).join('') + '</div>';
+}
+function figHTML(q){
+  if(!q.gf || !q.gf.length) return '';
+  return '<div class="qfigs">' + q.gf.map(function(k){ var f = FIGS[k];
+    return f ? ('<figure class="qfig"><img loading="lazy" alt="' + esc(f.c) + '" src="' + f.u + '"><figcaption>' + esc(f.c) + '<span>出典：' + esc(f.s) + '</span></figcaption></figure>') : ''; }).join('') + '</div>';
+}
+
+/* ======================================================= 統計 */
+function refreshStats(){
+  let done = 0, correct = 0, wrong = 0;
+  SEL.forEach(function(c){ done += statBy[c].done; correct += statBy[c].correct; wrong += wrongBy[c].size; });
+  document.getElementById('st-rate').textContent = (done ? Math.round(correct / done * 100) : 0) + '%';
+  document.getElementById('st-done').textContent = fmtNum(done);
+  document.getElementById('st-wrong').textContent = fmtNum(wrong);
+}
+
+/* ======================================================= TEST */
+const fSubj = document.getElementById('f-subj');
+const fSource = document.getElementById('f-source');
+const fYear = document.getElementById('f-year');
+const fField = document.getElementById('f-field');
+function setupFilters(){
+  document.getElementById('f-subjwrap').style.display = ALLMODE ? '' : 'none';
+  if(ALLMODE){ subjOptions(fSubj); fSubj.value = ''; }
+  fField.value = '';
+  fieldOptions(fField);
+  const nS = QUESTIONS.filter(q => q.src === '問題集').length, nP = QUESTIONS.length - nS;
+  fSource.innerHTML = '<option value="">全て（' + fmtNum(QUESTIONS.length) + '問）</option>' +
+    '<option value="問題集">問題集（' + fmtNum(nS) + '問）</option>' +
+    '<option value="過去問">過去問（' + fmtNum(nP) + '問）</option>';
+  fYear.innerHTML = '<option value="">全年度</option>' + YEARS.map(y => '<option value="' + y + '">第' + y + '回</option>').join('');
+  /* 閲覧・単語帳側も作り直す */
+  document.getElementById('b-subjwrap').style.display = ALLMODE ? '' : 'none';
+  if(ALLMODE){ subjOptions(document.getElementById('b-subj')); }
+  document.getElementById('b-field').value = '';
+  fieldOptions(document.getElementById('b-field'));
+  setupGlossaryFilter();
+  document.getElementById('b-list').innerHTML = '';
+  const rl = document.getElementById('r-list'); rl.innerHTML = ''; rl.dataset.built = '';
+  document.getElementById('g-list').innerHTML = '';
+}
+fSubj.onchange = function(){
+  fField.value = '';
+  fieldOptions(fField, fSubj.value || null);
+};
+let mode = 'random';
+document.getElementById('f-mode').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  [...b.parentNode.children].forEach(x => x.classList.toggle('on', x === b)); mode = b.dataset.m;
+  document.getElementById('f-startwrap').style.display = mode === 'order' ? '' : 'none';
+});
+let quiz = null;
+function buildPool(){
+  const fk = fField.value;
+  const sc = ALLMODE ? fSubj.value : '';
+  const src = fSource.value, year = +fYear.value;
+  const kw = document.getElementById('f-kw').value.trim();
+  let pool = QUESTIONS.slice();
+  if(sc) pool = pool.filter(q => q.sc === sc);
+  if(src) pool = pool.filter(q => q.src === src);
+  if(year) pool = pool.filter(q => q.year === year);
+  if(fk) pool = pool.filter(q => fkey(q) === fk);
+  if(mode === 'wrong') pool = pool.filter(q => isWrong(q));
+  if(kw){ const k = kw.toLowerCase();
+    pool = pool.filter(q => (q.stem + q.choices.join('') + q.notes.join('') + q.expl).toLowerCase().includes(k)); }
+  /* 全科目では、2科目に重複収載された同一過去問を1問にまとめる */
+  if(ALLMODE && !sc){
+    const seen = {};
+    pool = pool.filter(function(q){ if(seen[q.oid]) return false; seen[q.oid] = 1; return true; });
+  }
+  if(mode === 'order'){
+    pool.sort((a, b) => (FRANK[fkey(a)] - FRANK[fkey(b)]) || (a.year - b.year) || (a.no - b.no));
+    const start = Math.max(1, +document.getElementById('f-startno').value || 1);
+    if(start > 1) pool = pool.slice(start - 1);
+  } else shuffle(pool);
+  const n = +document.getElementById('f-count').value;
+  if(n > 0) pool = pool.slice(0, n);
+  return pool;
+}
+document.getElementById('f-start').onclick = () => {
+  const pool = buildPool();
+  if(!pool.length){
+    const startNo = +document.getElementById('f-startno').value || 1;
+    alert(mode === 'wrong' ? '復習リストに該当する問題がありません。' :
+      (mode === 'order' && startNo > 1) ? '開始問題番号が絞り込み後の問題数を超えています。' : '条件に合う問題がありません。');
+    return;
+  }
+  quiz = {list: pool, i: 0, graded: false, sel: new Set(), correct: 0, answered: new Array(pool.length), selHist: new Array(pool.length)};
+  show('run'); renderQ();
+};
+function show(w){
+  document.getElementById('test-setup').style.display = w === 'setup' ? '' : 'none';
+  document.getElementById('test-run').style.display = w === 'run' ? '' : 'none';
+  document.getElementById('test-result').style.display = w === 'result' ? '' : 'none';
+}
+function renderQ(){
+  const q = quiz.list[quiz.i];
+  const already = quiz.answered[quiz.i] !== undefined;
+  quiz.graded = already;
+  quiz.sel = already ? new Set(quiz.selHist[quiz.i]) : new Set();
+  const sp = document.getElementById('q-subj');
+  if(ALLMODE){ sp.style.display = ''; sp.textContent = subjName(q.sc); } else sp.style.display = 'none';
+  document.getElementById('q-field').textContent = q.field;
+  document.getElementById('q-src').textContent = srcTag(q);
+  document.getElementById('q-idx').textContent = (quiz.i + 1) + ' / ' + quiz.list.length;
+  document.getElementById('q-prog').style.width = ((quiz.i) / quiz.list.length * 100) + '%';
+  document.getElementById('q-stem').textContent = (q.multi ? '【複数選択】' : '') + q.stem;
+  const dup = DUPMAP[q.oid];
+  document.getElementById('q-dup').innerHTML = (ALLMODE && dup) ?
+    '<div class="dupnote">この問題は ' + dup.map(c => esc(subjName(c))).join(' ・ ') + ' に重複して収載されています（同一の過去問）。</div>' : '';
+  document.getElementById('q-stemfig').innerHTML = stemFigHTML(q);
+  document.getElementById('q-verdict').innerHTML = '';
+  document.getElementById('q-expl').innerHTML = '';
+  const wrap = document.getElementById('q-choices'); wrap.innerHTML = '';
+  q.choices.forEach((c, idx) => {
+    const n = idx + 1;
+    const el = document.createElement('button'); el.className = 'choice'; el.dataset.n = n;
+    el.innerHTML = '<span class="num">' + CIRCLE[n] + '</span><span class="ctxt">' + esc(c) +
+      (q.notes[idx] ? '<span class="note">→ ' + fmtExpl(q.notes[idx], q) + '</span>' : '') + '</span>';
+    el.onclick = () => {
+      if(quiz.graded) return;
+      if(q.multi){ el.classList.toggle('sel'); quiz.sel.has(n) ? quiz.sel.delete(n) : quiz.sel.add(n); }
+      else { wrap.querySelectorAll('.choice').forEach(x => x.classList.remove('sel')); el.classList.add('sel'); quiz.sel = new Set([n]); }
+    };
+    wrap.appendChild(el);
+  });
+  document.getElementById('q-back').disabled = quiz.i === 0;
+  const act = document.getElementById('q-action');
+  if(already){
+    revealAnswer(q, quiz.answered[quiz.i]);
+    act.textContent = quiz.i < quiz.list.length - 1 ? '次の問題 →' : '結果を見る';
+    act.onclick = next;
+  }else{
+    act.textContent = q.multi ? '採点（複数選択可）' : '採点';
+    act.onclick = grade;
+  }
+}
+function revealAnswer(q, ok){
+  const ans = new Set(q.answer);
+  const wrap = document.getElementById('q-choices');
+  wrap.querySelectorAll('.choice').forEach(el => {
+    const n = +el.dataset.n; el.classList.add('reveal'); el.classList.remove('sel');
+    const sel = quiz.sel.has(n), cor = ans.has(n);
+    if(cor) el.classList.add('ok'); else if(sel) el.classList.add('ng');
+    let mk = ''; if(cor && sel) mk = '<span class="mk ok">✓</span>'; else if(cor) mk = '<span class="mk ok">正解</span>'; else if(sel) mk = '<span class="mk ng">✗</span>';
+    if(mk) el.querySelector('.ctxt').insertAdjacentHTML('afterend', mk);
+  });
+  document.getElementById('q-verdict').innerHTML =
+    '<div class="verdict ' + (ok ? 'ok' : 'ng') + '">' + (ok ? '正解！' : '不正解') + '　正解：' + q.answer.map(a => CIRCLE[a]).join('・') + '</div>';
+  document.getElementById('q-expl').innerHTML = (q.expl ? '<div class="expl"><b>解説</b>' + fmtExpl(q.expl, q) + '</div>' : '') + figHTML(q);
+  document.getElementById('q-prog').style.width = ((quiz.i + 1) / quiz.list.length * 100) + '%';
+}
+function grade(){
+  const q = quiz.list[quiz.i];
+  if(!quiz.graded){
+    if(!quiz.sel.size){ return; }
+    quiz.graded = true;
+    const ans = new Set(q.answer);
+    const ok = quiz.sel.size === ans.size && [...quiz.sel].every(x => ans.has(x));
+    quiz.answered[quiz.i] = ok;
+    quiz.selHist[quiz.i] = new Set(quiz.sel);
+    statBy[q.sc].done++;
+    if(ok){ statBy[q.sc].correct++; quiz.correct++; wrongBy[q.sc].delete(q.oid); }
+    else { wrongBy[q.sc].add(q.oid); }
+    saveProgress(q.sc); refreshStats();
+    revealAnswer(q, ok);
+    const act = document.getElementById('q-action');
+    act.textContent = quiz.i < quiz.list.length - 1 ? '次の問題 →' : '結果を見る';
+    act.onclick = next;
+  }
+}
+function next(){
+  if(quiz.i < quiz.list.length - 1){ quiz.i++; renderQ(); window.scrollTo(0, 0); }
+  else result();
+}
+function prev(){ if(quiz.i > 0){ quiz.i--; renderQ(); window.scrollTo(0, 0); } }
+document.getElementById('q-back').onclick = prev;
+document.getElementById('q-quit').onclick = () => { if(confirm('テストを中断しますか？')) show('setup'); };
+function result(){
+  show('result');
+  const n = quiz.list.length, c = quiz.correct, p = Math.round(c / n * 100);
+  document.getElementById('r-emoji').textContent = p >= 80 ? '🎉' : p >= 60 ? '👍' : '📚';
+  document.getElementById('r-score').textContent = c + ' / ' + n + '（' + p + '%）';
+  document.getElementById('r-detail').textContent = p >= 80 ? 'よくできました！' : p >= 60 ? '合格ライン。間違いを復習しよう。' : '復習リストで弱点をつぶそう。';
+}
+document.getElementById('r-again').onclick = () => { document.getElementById('f-start').click(); };
+document.getElementById('r-home').onclick = () => show('setup');
+document.getElementById('r-wrong').onclick = () => {
+  const w = quiz.list.filter((q, idx) => !quiz.answered[idx]);
+  if(!w.length){ alert('間違いはありませんでした！'); return; }
+  quiz = {list: shuffle(w), i: 0, graded: false, sel: new Set(), correct: 0, answered: new Array(w.length), selHist: new Array(w.length)};
+  show('run'); renderQ();
+};
+document.getElementById('f-reset').onclick = () => {
+  const names = SEL.map(subjName).join('・');
+  if(!confirm(names + ' の累計成績と復習リストを消去します。よろしいですか？')) return;
+  SEL.forEach(function(c){ wrongBy[c] = new Set(); statBy[c] = {done:0, correct:0}; saveProgress(c); });
+  refreshStats();
+};
+
+/* ======================================================= 遅延展開アコーディオン */
+/* 2,400問を一度にDOM化すると重いので、開いたときに中身を作る */
+function accHTML(groups, labelFn, cntUnit){
+  return groups.map(function(g, i){
+    return '<details class="acc" data-i="' + i + '"><summary><span class="chev">▶</span>' +
+      labelFn(g) + '<span class="cnt">' + g.items.length + cntUnit + '</span></summary>' +
+      '<div class="body"></div></details>';
+  }).join('');
+}
+/* 図版つきの問題は1枚が数百KBになるので、1グループ内も少しずつ描く */
+function fillBody(b, items, renderItem, page){
+  const btn = b.querySelector('.morebtn'); if(btn) btn.remove();
+  const n = +(b.dataset.n || 0);
+  const slice = items.slice(n, n + page);
+  b.insertAdjacentHTML('beforeend', slice.map(renderItem).join(''));
+  b.dataset.n = n + slice.length;
+  const more = items.length - (n + slice.length);
+  if(more > 0){
+    b.insertAdjacentHTML('beforeend',
+      '<button class="btn sec morebtn" style="margin:10px 0">残り' + more + '件を表示（+' + Math.min(page, more) + '）</button>');
+  }
+}
+function wireAcc(listEl, groupsRef, renderItem, page){
+  listEl.addEventListener('toggle', function(e){
+    const d = e.target;
+    if(!d || d.tagName !== 'DETAILS' || !d.open) return;
+    const b = d.querySelector('.body');
+    if(b.dataset.n) return;
+    fillBody(b, groupsRef.g[+d.dataset.i].items, renderItem, page);
+  }, true);
+  listEl.addEventListener('click', function(e){
+    const btn = e.target.closest('.morebtn'); if(!btn) return;
+    const d = btn.closest('details');
+    fillBody(d.querySelector('.body'), groupsRef.g[+d.dataset.i].items, renderItem, page);
+  });
+}
+function fillOpen(listEl, groupsRef, renderItem, page){
+  listEl.querySelectorAll('details[open]').forEach(function(d){
+    const b = d.querySelector('.body');
+    if(b.dataset.n) return;
+    fillBody(b, groupsRef.g[+d.dataset.i].items, renderItem, page);
+  });
+}
+function groupByField(list){
+  const map = {}, order = [];
+  list.forEach(function(q){
+    const k = fkey(q);
+    if(!map[k]){ map[k] = {c: q.sc, f: q.field, items: []}; order.push(k); }
+    map[k].items.push(q);
+  });
+  /* FIELDS（科目順・分野順）に沿って並べる */
+  order.sort((a, b) => (FRANK[a] ?? 9999) - (FRANK[b] ?? 9999));
+  return order.map(k => map[k]);
+}
+function accLabel(g){
+  return (ALLMODE ? '<span class="sj">' + esc(subjName(g.c)) + '</span>／' : '') + esc(g.f);
+}
+
+/* ======================================================= BROWSE */
+const bSubj = document.getElementById('b-subj');
+const bSource = document.getElementById('b-source');
+const bField = document.getElementById('b-field');
+bSource.innerHTML = '<option value="">全範囲</option><option value="問題集">問題集</option><option value="過去問">過去問</option>';
+bSubj.onchange = function(){ bField.value = ''; fieldOptions(bField, bSubj.value || null); renderBrowse(); };
+bSource.onchange = renderBrowse;
+bField.onchange = renderBrowse;
+document.getElementById('b-kw').oninput = renderBrowse;
+function qCardHTML(q){
+  const ans = new Set(q.answer);
+  const opts = q.choices.map((c, idx) => {
+    const n = idx + 1, cor = ans.has(n);
+    return '<div class="opt ' + (cor ? 'correct' : '') + '"><span class="n">' + CIRCLE[n] + '</span><span>' + esc(c) +
+      (q.notes[idx] ? '<span class="nt">→ ' + fmtExpl(q.notes[idx], q) + '</span>' : '') + '</span></div>';
+  }).join('');
+  return '<div class="bq"><div class="qs"><span class="pill" style="margin-right:6px;vertical-align:middle">' + esc(srcTag(q)) + '</span>' +
+    esc(q.stem) + '</div>' + stemFigHTML(q) + opts +
+    '<div class="ansline">解答：' + q.answer.map(a => CIRCLE[a]).join('・') + '</div>' +
+    (q.expl ? '<div class="expl"><b>解説</b>' + fmtExpl(q.expl, q) + '</div>' : '') + figHTML(q) + '</div>';
+}
+const bRef = {g: []};
+const B_PAGE = 15;
+wireAcc(document.getElementById('b-list'), bRef, qCardHTML, B_PAGE);
+function renderBrowse(){
+  const fk = bField.value, sc = ALLMODE ? bSubj.value : '';
+  const src = bSource.value;
+  const kw = document.getElementById('b-kw').value.trim().toLowerCase();
+  const list = document.getElementById('b-list');
+  let sel = QUESTIONS.filter(function(q){
+    if(sc && q.sc !== sc) return false;
+    if(fk && fkey(q) !== fk) return false;
+    if(src && q.src !== src) return false;
+    if(kw && !(q.stem + q.choices.join('') + q.notes.join('') + q.expl).toLowerCase().includes(kw)) return false;
+    return true;
+  });
+  bRef.g = groupByField(sel);
+  if(!bRef.g.length){ list.innerHTML = '<div class="emptyhint">該当する問題がありません。</div>'; return; }
+  /* 絞り込みが効いていて件数が少ないときだけ自動で開く */
+  const opened = !!(kw || fk) && sel.length <= 60;
+  list.innerHTML = accHTML(bRef.g, accLabel, '問').replace(/<details class="acc"/g,
+    opened ? '<details class="acc" open' : '<details class="acc"');
+  if(opened) fillOpen(list, bRef, qCardHTML, B_PAGE);
+}
+
+/* ======================================================= REFERENCE */
+/*REF-JS-START*/
+const rRef = {g: []};
+function refItemHTML(q){
+  return '<div class="rowl"><span class="i">' + esc(q.oid) + '</span><span class="s">' +
+    esc(q.field + ' #' + q.no + '　' + String(q.stem).slice(0, 40)) + '</span></div>';
+}
+wireAcc(document.getElementById('r-list'), rRef, refItemHTML, 200);
+function renderRef(){
+  const list = document.getElementById('r-list');
+  if(list.dataset.built === SEL.join(',')) return;
+  const map = {}, order = [];
+  QUESTIONS.forEach(function(q){
+    if(!map[q.sc]){ map[q.sc] = {c: q.sc, f: '問題ID一覧', items: []}; order.push(q.sc); }
+    map[q.sc].items.push(q);
+  });
+  rRef.g = order.map(k => map[k]);
+  list.innerHTML = accHTML(rRef.g, function(g){ return esc(subjName(g.c)) + '<span class="sj">（問題ID）</span>'; }, '問');
+  list.dataset.built = SEL.join(',');
+}
+/*REF-JS-END*/
+
+/* ======================================================= GLOSSARY */
+const gField = document.getElementById('g-field');
+const gSubj = document.getElementById('g-subj');
+let gmode = 'list';
+function setupGlossaryFilter(){
+  document.getElementById('g-subjwrap').style.display = ALLMODE ? '' : 'none';
+  if(ALLMODE) subjOptions(gSubj);
+  const fs = [];
+  const seen = {};
+  TERMS.forEach(function(t){ const k = t.sc + FKSEP + t.field; if(!seen[k]){ seen[k] = 1; fs.push({c: t.sc, f: t.field}); } });
+  let h = '<option value="">全分野</option>';
+  if(ALLMODE){
+    SEL.forEach(function(c){
+      const g = fs.filter(x => x.c === c);
+      if(!g.length) return;
+      h += '<optgroup label="' + esc(subjName(c)) + '">' +
+        g.map(x => '<option value="' + esc(x.c + FKSEP + x.f) + '">' + esc(x.f) + '</option>').join('') + '</optgroup>';
+    });
+  }else{
+    h += fs.map(x => '<option value="' + esc(x.c + FKSEP + x.f) + '">' + esc(x.f) + '</option>').join('');
+  }
+  gField.innerHTML = h;
+}
+gSubj.onchange = function(){ renderGlossary(); };
+document.getElementById('g-mode').addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  [...b.parentNode.children].forEach(x => x.classList.toggle('on', x === b)); gmode = b.dataset.g; renderGlossary();
+});
+document.getElementById('g-kw').oninput = renderGlossary;
+gField.onchange = renderGlossary;
+function filterTerms(){
+  const kw = document.getElementById('g-kw').value.trim().toLowerCase();
+  const fk = gField.value, sc = ALLMODE ? gSubj.value : '';
+  return TERMS.filter(t => (!sc || t.sc === sc) && (!fk || (t.sc + FKSEP + t.field) === fk) &&
+    (!kw || (t.term + t.read + t.def).toLowerCase().includes(kw)));
+}
+function gtermHTML(t){
+  return '<div class="gterm"><h3>' + esc(t.term) + ' ' + (t.read ? '<span class="rd">' + esc(t.read) + '</span>' : '') +
+    '<span class="pill f" style="margin-left:auto">' + esc(t.field) + '</span></h3><p>' + esc(t.def) + '</p></div>';
+}
+const gRef = {g: []};
+const G_PAGE = 50;
+wireAcc(document.getElementById('g-list'), gRef, gtermHTML, G_PAGE);
+let fcList = [], fcI = 0, fcFlip = false;
+function renderGlossary(){
+  const list = document.getElementById('g-list'), card = document.getElementById('g-card');
+  const ts = filterTerms();
+  if(gmode === 'list'){
+    card.style.display = 'none'; list.style.display = '';
+    if(!ts.length){ list.innerHTML = '<div class="emptyhint">該当する用語がありません。</div>'; return; }
+    const map = {}, order = [];
+    ts.forEach(function(t){
+      const k = t.sc + FKSEP + t.field;
+      if(!map[k]){ map[k] = {c: t.sc, f: t.field, items: []}; order.push(k); }
+      map[k].items.push(t);
+    });
+    gRef.g = order.map(k => map[k]);
+    const opened = !!(document.getElementById('g-kw').value.trim() || gField.value) && ts.length <= 120;
+    list.innerHTML = accHTML(gRef.g, accLabel, '語').replace(/<details class="acc"/g,
+      opened ? '<details class="acc" open' : '<details class="acc"');
+    if(opened) fillOpen(list, gRef, gtermHTML, G_PAGE);
+  }else{
+    list.style.display = 'none'; card.style.display = '';
+    fcList = ts; fcI = 0; fcFlip = false; renderFC();
+  }
+}
+function renderFC(){
+  const card = document.getElementById('g-card');
+  if(!fcList.length){ card.innerHTML = '<div class="emptyhint">カードがありません。</div>'; return; }
+  const t = fcList[fcI];
+  card.innerHTML =
+    '<div class="mini" style="text-align:center;margin:4px 0">' + (fcI + 1) + ' / ' + fcList.length + '</div>' +
+    '<div class="fc-wrap"><div class="fc ' + (fcFlip ? 'flip' : '') + '" id="fc">' +
+      '<div class="fc-face front"><div class="big">' + esc(t.term) + '</div>' +
+      (t.read ? '<div class="rd">' + esc(t.read) + '</div>' : '') + '<div class="hint">タップで答え</div></div>' +
+      '<div class="fc-face back"><div class="df">' + esc(t.def) + '</div><div class="hint">タップで戻る</div></div>' +
+    '</div></div>' +
+    '<div class="qnav">' +
+      '<button class="btn sec" id="fc-prev">← 前</button>' +
+      '<button class="btn sec" id="fc-shuf">シャッフル</button>' +
+      '<button class="btn" id="fc-next">次 →</button>' +
+    '</div>';
+  document.getElementById('fc').onclick = () => { fcFlip = !fcFlip; document.getElementById('fc').classList.toggle('flip'); };
+  document.getElementById('fc-prev').onclick = () => { fcI = (fcI - 1 + fcList.length) % fcList.length; fcFlip = false; renderFC(); };
+  document.getElementById('fc-next').onclick = () => { fcI = (fcI + 1) % fcList.length; fcFlip = false; renderFC(); };
+  document.getElementById('fc-shuf').onclick = () => { shuffle(fcList); fcI = 0; fcFlip = false; renderFC(); };
+}
+
+/* ---------- init ---------- */
+renderPicker();
+</script>
+</body>
+</html>
