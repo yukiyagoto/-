@@ -368,8 +368,8 @@ input[type=number]{width:100%}
    - 相対パス + 通常のscriptタグで読むため file:// でも raw.githack 経由でも動く
    ========================================================================= */
 
-const DATA_V = '20260825';
-const SUBJECTS = [{"c":"kiso","n":"基礎医学大要","q":709,"t":272,"g":35,"kb":8224},{"c":"rikohoshasen","n":"理工学・放射線科学","q":592,"t":136,"g":52,"kb":1268},{"c":"kikigaku","n":"診療画像機器学","q":274,"t":130,"g":13,"kb":871},{"c":"xgijutsu","n":"エックス線撮影技術学","q":170,"t":121,"g":81,"kb":5575},{"c":"gazokensa","n":"診療画像検査学","q":189,"t":82,"g":79,"kb":4411},{"c":"kakuigaku","n":"核医学診療技術学","q":203,"t":94,"g":6,"kb":980},{"c":"hoshachiryo","n":"放射線治療技術学","q":167,"t":82,"g":18,"kb":1153},{"c":"gazokogaku","n":"画像工学","q":43,"t":48,"g":18,"kb":253},{"c":"gazojoho","n":"医療画像情報学","q":82,"t":81,"g":15,"kb":469},{"c":"hoshaanzen","n":"放射線安全管理学","q":89,"t":77,"g":0,"kb":221},{"c":"iryoanzen","n":"医療安全管理学","q":43,"t":81,"g":0,"kb":142}];
+const DATA_V = '20261002';
+const SUBJECTS = [{"c":"kiso","n":"基礎医学大要","q":895,"t":272,"g":36,"kb":8447},{"c":"rikohoshasen","n":"理工学・放射線科学","q":832,"t":136,"g":90,"kb":2740},{"c":"kikigaku","n":"診療画像機器学","q":353,"t":130,"g":18,"kb":1241},{"c":"xgijutsu","n":"エックス線撮影技術学","q":289,"t":121,"g":137,"kb":9425},{"c":"gazokensa","n":"診療画像検査学","q":341,"t":82,"g":141,"kb":9256},{"c":"kakuigaku","n":"核医学診療技術学","q":353,"t":94,"g":16,"kb":1640},{"c":"hoshachiryo","n":"放射線治療技術学","q":289,"t":82,"g":26,"kb":1677},{"c":"gazokogaku","n":"画像工学","q":70,"t":48,"g":25,"kb":552},{"c":"gazojoho","n":"医療画像情報学","q":125,"t":81,"g":19,"kb":608},{"c":"hoshaanzen","n":"放射線安全管理学","q":141,"t":77,"g":0,"kb":289},{"c":"iryoanzen","n":"医療安全管理学","q":73,"t":81,"g":0,"kb":183}];
 
 
 const APPNAME = '診療放射線技師国家試験';
@@ -389,7 +389,7 @@ let DUPMAP = {};          /* 元ID -> [科目名,…] 別科目にも収載さ�
 const CIRCLE = ['','①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'];
 const FKSEP = '::';
 function fkey(o){ return o.sc + FKSEP + o.field; }
-function srcTag(q){ return q.src === '過去問' ? ('第' + q.year + '回' + q.sess) : '問題集'; }
+function srcTag(q){ return q.src === '過去問' ? (q.year ? ('第' + q.year + '回' + q.sess) : '過去問（問題集収載）') : '問題集'; }
 function subjName(c){ return (SUBJ_BY[c] && SUBJ_BY[c].n) || c; }
 function fmtNum(n){ return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
 function fmtMB(kb){ return kb >= 1024 ? (kb / 1024).toFixed(1) + 'MB' : kb + 'KB'; }
